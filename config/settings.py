@@ -1,8 +1,7 @@
 import os
 from pathlib import Path
-
-from django.urls import reverse_lazy
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
 
@@ -12,17 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # =========================
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "dev-only-change-in-production-not-for-production"
-)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-dev-key")
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() in ("1", "true", "yes")
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get(
-    "DJANGO_ALLOWED_HOSTS",
-    ".onrender.com,127.0.0.1,localhost"
-).split(",")
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", ".onrender.com,localhost,127.0.0.1").split(",") if h.strip()]
 
 # =========================
 # APPS
@@ -59,13 +52,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-
-    # ✅ REQUIRED FOR RENDER STATIC FILES
     "whitenoise.middleware.WhiteNoiseMiddleware",
 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+
+    # 🔥 IMPORTANT FIX FOR RENDER CSRF
     "django.middleware.csrf.CsrfViewMiddleware",
+
     "django.contrib.auth.middleware.AuthenticationMiddleware",
 
     "apps.accounts.middleware.RoleContextMiddleware",
@@ -76,6 +70,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
+WSGI_APPLICATION = "config.wsgi.application"
 
 # =========================
 # TEMPLATES
@@ -93,42 +88,28 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
         },
-    },
+    }
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
-
 # =========================
-# DATABASE
+# DATABASE (RENDER FIX)
 # =========================
 
-def _use_postgresql() -> bool:
-    if os.environ.get("FORCE_SQLITE", "").lower() in ("1", "true", "yes"):
-        return False
-    if os.environ.get("USE_SQLITE", "").lower() in ("1", "true", "yes"):
-        return False
-    return os.environ.get("USE_POSTGRES", "").lower() in ("1", "true", "yes")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-
-if not _use_postgresql():
+if DATABASE_URL:
     DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
     }
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("POSTGRES_DB", "tvet_cms"),
-            "USER": os.environ.get("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
-            "HOST": os.environ.get("POSTGRES_HOST", "127.0.0.1"),
-            "PORT": os.environ.get("POSTGRES_PORT", "5432"),
-            "OPTIONS": {
-                "connect_timeout": int(os.environ.get("POSTGRES_CONNECT_TIMEOUT", "10")),
-            },
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
@@ -136,43 +117,30 @@ else:
 # AUTH
 # =========================
 
+AUTH_USER_MODEL = "accounts.User"
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-AUTH_USER_MODEL = "accounts.User"
-
 # =========================
-# INTERNATIONALIZATION
-# =========================
-
-LANGUAGE_CODE = "en-ke"
-TIME_ZONE = "Africa/Nairobi"
-USE_I18N = True
-USE_TZ = True
-
-# =========================
-# STATIC FILES (RENDER FIX)
+# STATIC FILES
 # =========================
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
-# ✅ WhiteNoise production storage
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+WHITENOISE_MAX_AGE = 31536000 if not DEBUG else 0
+
+# =========================
+# MEDIA
+# =========================
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
-# =========================
-# DEFAULT AUTO FIELD
-# =========================
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # =========================
 # REST FRAMEWORK
@@ -180,8 +148,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -192,17 +160,35 @@ REST_FRAMEWORK = {
 # AUTH REDIRECTS
 # =========================
 
-LOGIN_URL = reverse_lazy("login")
-LOGIN_REDIRECT_URL = reverse_lazy("dashboard")
-LOGOUT_REDIRECT_URL = reverse_lazy("login")
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGOUT_REDIRECT_URL = "/login/"
 
+# =========================
+# CSRF + SECURITY (CRITICAL FIX)
+# =========================
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "https://*.onrender.com").split(",")
+    if origin.strip()
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 CSRF_FAILURE_VIEW = "apps.accounts.views.csrf_failure"
 
 # =========================
-# SECURITY (PRODUCTION ONLY)
+# PRODUCTION HARDENING
 # =========================
 
 if not DEBUG:
+    SECURE_SSL_REDIRECT = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
