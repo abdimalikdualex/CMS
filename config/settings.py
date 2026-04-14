@@ -96,15 +96,19 @@ TEMPLATES = [
 # =========================
 
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
-
+parsed_database = None
 if DATABASE_URL:
-    DATABASES = {
-        "default": dj_database_url.parse(
+    try:
+        parsed_database = dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
             ssl_require=not DEBUG,
         )
-    }
+    except ValueError:
+        parsed_database = None
+
+if parsed_database:
+    DATABASES = {"default": parsed_database}
 else:
     DATABASES = {
         "default": {
@@ -112,6 +116,8 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+print(f"[startup] DB engine: {DATABASES['default']['ENGINE']}")
 
 # =========================
 # AUTH
