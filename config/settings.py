@@ -96,6 +96,7 @@ TEMPLATES = [
 # =========================
 
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
+ON_RENDER = (os.getenv("RENDER") or "").lower() == "true"
 parsed_database = None
 if DATABASE_URL:
     try:
@@ -110,14 +111,15 @@ if DATABASE_URL:
 if parsed_database:
     DATABASES = {"default": parsed_database}
 else:
+    sqlite_name = Path("/tmp/db.sqlite3") if ON_RENDER else (BASE_DIR / "db.sqlite3")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": sqlite_name,
         }
     }
 
-print(f"[startup] DB engine: {DATABASES['default']['ENGINE']}")
+print(f"[startup] DB engine: {DATABASES['default']['ENGINE']} | name: {DATABASES['default'].get('NAME', 'n/a')}")
 
 # =========================
 # AUTH
