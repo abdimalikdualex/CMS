@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import DatabaseError
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -59,15 +60,19 @@ def login_view(request):
             return render(request, "auth/login.html")
 
         login(request, user)
-        AuditLog.objects.create(
-            user=user,
-            action="login",
-            module="auth",
-            path=request.path,
-            method=request.method,
-            status_code=200,
-            metadata={"username": user.username},
-        )
+        try:
+            AuditLog.objects.create(
+                user=user,
+                action="login",
+                module="auth",
+                path=request.path,
+                method=request.method,
+                status_code=200,
+                metadata={"username": user.username},
+            )
+        except DatabaseError:
+            # Never block login due to audit-log table/state issues.
+            pass
         if remember_me:
             request.session.set_expiry(60 * 60 * 24 * 14)
         else:
