@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
@@ -95,7 +96,8 @@ TEMPLATES = [
 # DATABASE (RENDER FIX)
 # =========================
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
+ON_RENDER = (os.getenv("RENDER") or "").lower() == "true"
 
 if DATABASE_URL:
     DATABASES = {
@@ -105,13 +107,15 @@ if DATABASE_URL:
             ssl_require=not DEBUG,
         )
     }
-else:
+elif DEBUG or not ON_RENDER:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+else:
+    raise ImproperlyConfigured("DATABASE_URL is required in production.")
 
 # =========================
 # AUTH
