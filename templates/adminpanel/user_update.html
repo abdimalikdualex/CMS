@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load form_extras %}
+{% block title %}Edit User{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-3xl space-y-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-semibold text-slate-900">Edit User: {{ target_user.username }}</h1>
+    <a href="{% url 'user_management' %}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Back</a>
+  </div>
+
+  <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-md">
+    <form method="post" class="space-y-4 text-sm">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {% for field in form %}
+          {% if 'checkboxinput' in field|widget_type %}
+            <div class="md:col-span-2">{% include "components/forms/form_checkbox.html" with field=field %}</div>
+          {% elif 'select' in field|widget_type %}
+            {% include "components/forms/form_select.html" with field=field %}
+          {% else %}
+            {% include "components/forms/form_input.html" with field=field %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="pt-2">
+        {% include "components/forms/form_button.html" with label="Save Changes" %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

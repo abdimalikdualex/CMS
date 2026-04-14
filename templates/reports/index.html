@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Reports — College Management System{% endblock %}
+
+{% block content %}
+<div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+  <h1 class="text-xl font-semibold text-slate-900">{{ title }}</h1>
+  <p class="mt-2 text-slate-600">MVP: wire PDF (WeasyPrint / xhtml2pdf) and CSV exports here for enrollment, academic, finance, and attachment reports.</p>
+  <ul class="mt-4 list-inside list-disc text-sm text-slate-700">
+    <li>Enrollment list</li>
+    <li>Academic performance report</li>
+    <li>Financial report</li>
+    <li>Attachment report</li>
+  </ul>
+</div>
+{% endblock %}

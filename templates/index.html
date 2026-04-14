@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>College Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 antialiased">
+  <div class="flex min-h-screen items-center justify-center px-4">
+    <div class="w-full max-w-lg rounded-xl bg-white p-8 text-center shadow-md">
+      <h1 class="mb-6 text-2xl font-bold text-gray-800">
+        College Management System
+      </h1>
+      <a
+        href="{% url 'login' %}"
+        class="inline-block rounded-lg bg-green-700 px-6 py-2 font-semibold text-white transition hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+      >
+        Login
+      </a>
+    </div>
+  </div>
+</body>
+</html>

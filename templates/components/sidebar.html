@@ -1,0 +1,49 @@
+<aside id="sidebar-panel" class="fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-72 -translate-x-full transform border-r border-slate-800 bg-[#0f172a] transition-transform duration-200 lg:translate-x-0">
+  <div class="flex h-full flex-col overflow-y-auto px-4 py-4">
+    <p class="mb-3 px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Navigation</p>
+    <ul class="space-y-1 text-sm">
+      {% if request.user.is_superuser %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'admin_dashboard' %}"><span>🏠</span><span>Super Admin Dashboard</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/users/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'user_management' %}"><span>👥</span><span>Users & Roles</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/students/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'student_management' %}"><span>👨‍🎓</span><span>Students</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/courses/' in request.path or '/admin/programs-courses/' in request.path or '/admin/cbet/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'cbet_management' %}"><span>📘</span><span>Academic Management</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/finance/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'finance_management' %}"><span>💰</span><span>Finance</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/reports/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'reports_management' %}"><span>📊</span><span>Reports</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/settings/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'system_settings' %}"><span>⚙️</span><span>System Settings</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/audit-logs/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'audit_logs' %}"><span>🧾</span><span>Audit Logs</span></a></li>
+      {% elif request.user.user_type == 'ADMISSION' %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admission-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'admission_dashboard' %}"><span>🏠</span><span>Admission Dashboard</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/admissions/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'admission_applications' %}"><span>📝</span><span>Applications</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/students/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'student_management' %}"><span>👨‍🎓</span><span>Register & Enroll Students</span></a></li>
+      {% elif request.user.user_type == 'ADMISSION_FINANCE' %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admission-finance-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'admission_finance_dashboard' %}"><span>🏠</span><span>Dashboard Overview</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/students/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'student_management' %}"><span>👨‍🎓</span><span>Students</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/students/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'student_management' %}#short-enrollment"><span>🧾</span><span>Enrollments</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/finance/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'finance_management' %}"><span>💰</span><span>Finance</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/reports/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'reports_management' %}"><span>📊</span><span>Reports</span></a></li>
+      {% elif request.user.user_type == 'FINANCE' %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/finance-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'finance_dashboard' %}"><span>🏠</span><span>Finance Dashboard</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/finance/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'finance_management' %}"><span>💰</span><span>Payments & Balances</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/reports/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'reports_management' %}"><span>📊</span><span>Financial Reports</span></a></li>
+      {% elif request.user.user_type == 'TRAINER' %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/trainer-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'trainer_dashboard' %}"><span>🏠</span><span>Staff Dashboard</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/courses/' in request.path or '/admin/programs-courses/' in request.path or '/admin/cbet/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'cbet_management' %}"><span>📘</span><span>Assigned Courses</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-200 hover:bg-slate-800" href="{% url 'cbet_management' %}#sessions"><span>🕒</span><span>Sessions</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-200 hover:bg-slate-800" href="{% url 'cbet_management' %}#attendance"><span>✅</span><span>Attendance</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/admin/results/' in request.path or '/admin/exams/' in request.path or '/admin/assessments/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'results_management' %}"><span>📈</span><span>Performance</span></a></li>
+      {% elif request.user.user_type == 'STUDENT' %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/student-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'student_dashboard' %}"><span>🏠</span><span>Student Dashboard</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-200 hover:bg-slate-800" href="{% url 'student_dashboard' %}#short-courses"><span>📘</span><span>My Courses</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-200 hover:bg-slate-800" href="{% url 'student_dashboard' %}#attendance"><span>✅</span><span>Attendance</span></a></li>
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-200 hover:bg-slate-800" href="{% url 'student_dashboard' %}#finance"><span>💰</span><span>Payments</span></a></li>
+      {% elif request.user.user_type == 'PARENT' %}
+      <li><a class="flex items-center gap-2 rounded-xl px-3 py-2 {% if '/parent-dashboard/' in request.path %}bg-green-600 text-white{% else %}text-slate-200 hover:bg-slate-800{% endif %}" href="{% url 'parent_dashboard' %}"><span>🏠</span><span>Parent Dashboard</span></a></li>
+      {% endif %}
+    </ul>
+    <div class="mt-auto pt-4">
+      <a class="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800" href="{% url 'logout' %}">
+        <span>↩</span><span>Logout</span>
+      </a>
+    </div>
+  </div>
+</aside>

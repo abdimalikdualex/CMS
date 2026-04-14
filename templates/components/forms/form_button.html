@@ -1,0 +1,12 @@
+<button
+  type="{{ type|default:'submit' }}"
+  {% if disabled %}disabled{% endif %}
+  class="group inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+  data-loading-button
+>
+  <svg class="hidden h-4 w-4 animate-spin" data-loading-spinner xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a10 10 0 00-8 10h4z"></path>
+  </svg>
+  <span data-loading-label>{{ label|default:"Save" }}</span>
+</button>

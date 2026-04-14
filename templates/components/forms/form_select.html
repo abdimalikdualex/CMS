@@ -1,0 +1,12 @@
+{% load form_extras %}
+<div class="form-enter">
+  <label for="{{ field.id_for_label }}" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">{{ field.label }}</label>
+  {% with cls="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/30" %}
+    {% if field.errors %}
+      {% render_field field cls|add:" border-red-400 focus:border-red-500 focus:ring-red-300" %}
+    {% else %}
+      {% render_field field cls %}
+    {% endif %}
+  {% endwith %}
+  {% include "components/forms/form_error.html" %}
+</div>

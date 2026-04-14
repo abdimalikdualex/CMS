@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Payment Receipt{% endblock %}
+{% block content %}
+<div class="mx-auto max-w-2xl space-y-4">
+  <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-md">
+    <div class="flex items-center justify-between">
+      <h1 class="text-xl font-semibold text-slate-900">Payment Receipt</h1>
+      <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">Received</span>
+    </div>
+    <div class="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+      <p><span class="font-semibold">Receipt No:</span> {{ payment.receipt_number }}</p>
+      <p><span class="font-semibold">Date:</span> {{ payment.paid_on }}</p>
+      <p><span class="font-semibold">Student:</span> {% if payment.invoice %}{{ payment.invoice.student.user.get_full_name|default:payment.invoice.student.admission_number }}{% else %}N/A{% endif %}</p>
+      <p><span class="font-semibold">Admission No:</span> {% if payment.invoice %}{{ payment.invoice.student.admission_number }}{% else %}N/A{% endif %}</p>
+      <p><span class="font-semibold">Method:</span> {{ payment.get_method_display }}</p>
+      <p><span class="font-semibold">Amount Paid:</span> {{ payment.amount|floatformat:0 }}</p>
+      <p class="md:col-span-2"><span class="font-semibold">Reference:</span> {{ payment.reference|default:"-" }}</p>
+      <p class="md:col-span-2"><span class="font-semibold">Transaction Code:</span> {{ payment.transaction_code|default:"-" }}</p>
+    </div>
+    <div class="mt-6 flex gap-2">
+      <a href="{% url 'finance_management' %}" class="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Back to Finance</a>
+      <button onclick="window.print()" class="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">Print</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

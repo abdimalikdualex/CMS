@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load form_extras %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl font-semibold">User Management (Super Admin)</h1>
+    <form method="get" class="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
+      <input name="q" value="{{ q }}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Search by name/email...">
+      <select name="role" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+        <option value="">All roles</option>
+        <option value="ADMIN" {% if role == 'ADMIN' %}selected{% endif %}>Admin</option>
+        <option value="FINANCE" {% if role == 'FINANCE' %}selected{% endif %}>Finance</option>
+        <option value="TRAINER" {% if role == 'TRAINER' %}selected{% endif %}>Staff</option>
+        <option value="ADMISSION" {% if role == 'ADMISSION' %}selected{% endif %}>Admission</option>
+        <option value="STUDENT" {% if role == 'STUDENT' %}selected{% endif %}>Student</option>
+      </select>
+      <button class="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white hover:bg-slate-700">Apply</button>
+    </form>
+  </div>
+
+  {% if generated_credentials %}
+  <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+    <p class="font-semibold">Generated credentials</p>
+    <p>Username: <strong>{{ generated_credentials.username }}</strong></p>
+    <p>Password: <strong>{{ generated_credentials.password }}</strong></p>
+    <p>Role: <strong>{{ generated_credentials.role }}</strong></p>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <div class="lg:col-span-2 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="px-3 py-2 text-left">Username</th>
+            <th class="px-3 py-2 text-left">Role</th>
+            <th class="px-3 py-2 text-left">Permissions (V/C/E/D)</th>
+            <th class="px-3 py-2 text-left">Status</th>
+            <th class="px-3 py-2 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for u in page_obj %}
+          <tr>
+            <td class="px-3 py-2">
+              <div class="font-medium">{{ u.username }}</div>
+              <div class="text-xs text-slate-500">{{ u.get_full_name|default:"-" }} - {{ u.email }}</div>
+            </td>
+            <td class="px-3 py-2 text-xs text-slate-600">
+              {% if u.is_superuser %}
+              <span class="rounded-full bg-purple-100 px-2 py-1 text-purple-800">SUPER_ADMIN</span>
+              {% elif u.user_type == 'ADMIN' %}
+              <span class="rounded-full bg-sky-100 px-2 py-1 text-sky-800">ADMIN</span>
+              {% elif u.user_type == 'FINANCE' %}
+              <span class="rounded-full bg-emerald-100 px-2 py-1 text-emerald-800">FINANCE</span>
+              {% elif u.user_type == 'TRAINER' %}
+              <span class="rounded-full bg-indigo-100 px-2 py-1 text-indigo-800">STAFF</span>
+              {% elif u.user_type == 'ADMISSION' %}
+              <span class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">ADMISSION</span>
+              {% elif u.user_type == 'ADMISSION_FINANCE' %}
+              <span class="rounded-full bg-teal-100 px-2 py-1 text-teal-800">ADMISSION_FINANCE</span>
+              {% else %}
+              <span class="rounded-full bg-slate-100 px-2 py-1 text-slate-700">STUDENT</span>
+              {% endif %}
+            </td>
+            <td class="px-3 py-2 text-xs text-slate-600">{{ u.can_view|yesno:"Y,N" }}/{{ u.can_create|yesno:"Y,N" }}/{{ u.can_edit|yesno:"Y,N" }}/{{ u.can_delete|yesno:"Y,N" }}</td>
+            <td class="px-3 py-2">
+              {% if u.is_active %}
+              <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-800">Active</span>
+              {% else %}
+              <span class="rounded-full bg-rose-100 px-2 py-1 text-xs text-rose-800">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="px-3 py-2 space-x-2">
+              <a class="text-blue-700 hover:underline" href="{% url 'user_update' u.id %}">Edit</a>
+              <a class="text-blue-700 hover:underline" href="{% url 'user_toggle_active' u.id %}">Toggle</a>
+              <a class="text-amber-700 hover:underline" href="{% url 'user_reset_password' u.id %}">Reset Password</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No users found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="flex items-center justify-between px-3 py-2 text-xs text-slate-500">
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        <div class="space-x-2">
+          {% if page_obj.has_previous %}<a href="?q={{ q }}&role={{ role }}&page={{ page_obj.previous_page_number }}">Prev</a>{% endif %}
+          {% if page_obj.has_next %}<a href="?q={{ q }}&role={{ role }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-md">
+      <h2 class="text-sm font-semibold">Actions</h2>
+      <button type="button" onclick="document.getElementById('createUserModal').classList.remove('hidden')" class="mt-3 w-full rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-green-700">Create User</button>
+      <p class="mt-3 text-xs text-slate-500">Only Super Admin can create, edit, deactivate, or reset users.</p>
+    </div>
+  </div>
+</div>
+
+<div id="createUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/40 p-4">
+  <div class="mx-auto mt-8 w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="mb-4 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-slate-900">Create User Account</h3>
+      <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="rounded-lg px-2 py-1 text-slate-600 hover:bg-slate-100">X</button>
+    </div>
+    <form method="post" class="space-y-4 text-sm">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {% for field in form %}
+          {% if 'checkboxinput' in field|widget_type %}
+            <div class="md:col-span-2 transition-all duration-200" data-user-field="{{ field.name }}">{% include "components/forms/form_checkbox.html" with field=field %}</div>
+          {% elif 'select' in field|widget_type %}
+            <div class="transition-all duration-200" data-user-field="{{ field.name }}">{% include "components/forms/form_select.html" with field=field %}</div>
+          {% else %}
+            <div class="transition-all duration-200" data-user-field="{{ field.name }}">{% include "components/forms/form_input.html" with field=field %}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="document.getElementById('createUserModal').classList.add('hidden')" class="rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Cancel</button>
+        <div>
+          {% include "components/forms/form_button.html" with label="Create User" %}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% if form.errors %}
+<script>
+  document.getElementById('createUserModal').classList.remove('hidden');
+</script>
+{% endif %}
+<script>
+  (function () {
+    const roleField = document.getElementById("id_role");
+    const studentOnly = ["program", "intake", "admission_number"];
+
+    function setFieldVisibility(fieldName, visible) {
+      const wrapper = document.querySelector('[data-user-field="' + fieldName + '"]');
+      if (!wrapper) return;
+      wrapper.classList.toggle("hidden", !visible);
+      const input = wrapper.querySelector("input, select, textarea");
+      if (input) {
+        input.disabled = !visible;
+      }
+    }
+
+    function syncRoleFields() {
+      const isStudent = roleField && roleField.value === "STUDENT";
+      studentOnly.forEach((name) => setFieldVisibility(name, isStudent));
+    }
+
+    function bindAutoToggle(toggleId, fieldId) {
+      const toggle = document.getElementById(toggleId);
+      const field = document.getElementById(fieldId);
+      if (!toggle || !field) return;
+      const apply = () => {
+        const autoMode = !!toggle.checked;
+        field.disabled = autoMode;
+        if (autoMode) {
+          field.value = "";
+        }
+      };
+      toggle.addEventListener("change", apply);
+      apply();
+    }
+
+    if (roleField) {
+      roleField.addEventListener("change", syncRoleFields);
+      syncRoleFields();
+    }
+
+    bindAutoToggle("id_auto_generate_username", "id_username");
+    bindAutoToggle("id_auto_generate_password", "id_password");
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Approvals{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <h1 class="text-2xl font-semibold">Approval Workflows</h1>
+  <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-md">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50"><tr><th class="px-3 py-2 text-left">Type</th><th class="px-3 py-2 text-left">Requested By</th><th class="px-3 py-2 text-left">Status</th><th class="px-3 py-2 text-left">Created</th><th class="px-3 py-2 text-left">Actions</th></tr></thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for t in tasks_page %}
+        <tr>
+          <td class="px-3 py-2">{{ t.get_task_type_display }}</td>
+          <td class="px-3 py-2">{{ t.requested_by.username|default:"-" }}</td>
+          <td class="px-3 py-2">{{ t.get_status_display }}</td>
+          <td class="px-3 py-2">{{ t.created_at|date:"Y-m-d H:i" }}</td>
+          <td class="px-3 py-2">
+            {% if t.status == 'pending' %}
+            <a href="?action=approve&task={{ t.id }}" class="text-green-700 hover:underline">Approve</a>
+            <span class="mx-1">|</span>
+            <a href="?action=reject&task={{ t.id }}" class="text-red-700 hover:underline">Reject</a>
+            {% else %}
+            <span class="text-slate-400">Reviewed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No approval tasks.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

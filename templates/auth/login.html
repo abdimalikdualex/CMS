@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | College Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex min-h-screen items-center justify-center bg-gray-100 antialiased">
+
+  <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg sm:p-8">
+    <h2 class="mb-2 text-center text-2xl font-bold text-gray-800">
+      College Management System
+    </h2>
+    <p class="mb-6 text-center text-gray-500">
+      Sign in to your account
+    </p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 text-sm {% if message.tags == 'error' %}text-red-600{% elif message.tags == 'success' %}text-emerald-700{% else %}text-gray-700{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <div class="mb-4">
+        <label for="username" class="mb-1 block text-sm text-gray-700">Username</label>
+        <input type="text" name="username" id="username" required autocomplete="username"
+          value="{{ request.POST.username|default:'' }}"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600">
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="mb-1 block text-sm text-gray-700">Password</label>
+        <input type="password" name="password" id="password" required autocomplete="current-password"
+          class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600">
+      </div>
+
+      <label class="mb-4 flex items-center gap-2 text-sm text-gray-600">
+        <input type="checkbox" name="remember_me" value="1" class="rounded border-gray-300 text-green-700 focus:ring-green-600">
+        Remember me
+      </label>
+
+      <button type="submit"
+        class="w-full rounded-lg bg-green-700 py-2 text-white transition hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2">
+        Login
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-500">
+      <a href="{% url 'home' %}" class="text-green-700 hover:underline">Back to home</a>
+    </p>
+  </div>
+
+</body>
+</html>

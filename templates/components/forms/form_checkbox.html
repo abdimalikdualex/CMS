@@ -1,0 +1,9 @@
+{% load form_extras %}
+<label class="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+  {% render_field field "mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500" %}
+  <span>
+    <span class="font-medium">{{ field.label }}</span>
+    {% if field.help_text %}<span class="block text-xs text-slate-500">{{ field.help_text }}</span>{% endif %}
+  </span>
+</label>
+{% include "components/forms/form_error.html" %}

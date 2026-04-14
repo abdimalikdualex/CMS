@@ -1,0 +1,18 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 px-6 py-4">
+    <h2 class="text-sm font-semibold text-slate-800">Recent Activity</h2>
+  </div>
+  <div class="divide-y divide-slate-100">
+    {% if items %}
+      {% for item in items %}
+      <div class="px-6 py-4 transition-colors hover:bg-slate-50">
+        <p class="text-sm font-medium text-slate-800">{{ item.title }}</p>
+        <p class="text-xs text-slate-500">{{ item.meta }}{% if item.when %} - {{ item.when|timesince }} ago{% endif %}</p>
+        <span class="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{{ item.status }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="px-6 py-8 text-sm text-slate-500">{{ empty_text|default:"No recent activity." }}</div>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,14 @@
+{% load form_extras %}
+<div class="relative form-enter">
+  {% with base="peer w-full rounded-xl border border-gray-300 bg-white px-3 pt-5 pb-2 text-sm text-gray-900 shadow-sm transition-all duration-200 placeholder-transparent focus:border-green-500 focus:ring-2 focus:ring-green-500/30 focus:scale-[1.01]" %}
+    {% if field.errors %}
+      {% render_field field base|add:" border-red-400 focus:border-red-500 focus:ring-red-300" " " %}
+    {% else %}
+      {% render_field field base " " %}
+    {% endif %}
+  {% endwith %}
+  <label for="{{ field.id_for_label }}" class="pointer-events-none absolute left-3 top-2 origin-left -translate-y-0 text-xs text-gray-500 transition-all duration-200 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:-translate-y-0 peer-focus:text-xs peer-focus:text-green-600">
+    {{ field.label }}
+  </label>
+  {% include "components/forms/form_error.html" %}
+</div>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}College Management System{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 600: '#065f46', 700: '#064e3b' } /* emerald-ish */
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    .form-enter {
+      animation: fadeUp .35s ease-out both;
+    }
+    .shake-error {
+      animation: shakeX .25s ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-full bg-[#f8fafc] text-slate-900 antialiased">
+  {% include "components/navbar.html" %}
+  <div class="{% block shell_class %}mx-auto flex w-full max-w-screen-2xl gap-4 px-3 pb-6 pt-4 sm:px-4 lg:gap-6{% endblock %}">
+    {% block sidebar %}
+      {% if request.user.is_authenticated %}
+        {% include "components/sidebar.html" %}
+      {% endif %}
+    {% endblock %}
+    <main class="{% block main_class %}min-w-0 flex-1 py-2 lg:py-3 {% if request.user.is_authenticated %}lg:ml-72{% endif %}{% endblock %}">
+      {% if messages %}
+      <ul class="fixed right-4 top-20 z-50 space-y-2">
+        {% for message in messages %}
+        <li class="rounded-xl border px-3 py-2 text-sm shadow-md {% if 'error' in message.tags %}border-red-200 bg-red-50 text-red-700{% elif 'success' in message.tags %}border-green-200 bg-green-50 text-green-700{% else %}border-slate-200 bg-white text-slate-700{% endif %}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script>
+    (function () {
+      const firstErr = document.querySelector('.field-error');
+      if (firstErr) {
+        firstErr.closest('div, label')?.classList.add('shake-error');
+        firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      document.querySelectorAll('form').forEach((form) => {
+        form.addEventListener('submit', () => {
+          const btn = form.querySelector('[data-loading-button]');
+          if (!btn) return;
+          btn.disabled = true;
+          const spinner = btn.querySelector('[data-loading-spinner]');
+          const label = btn.querySelector('[data-loading-label]');
+          if (spinner) spinner.classList.remove('hidden');
+          if (label) label.textContent = 'Saving...';
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
