@@ -97,17 +97,22 @@ TEMPLATES = [
 # =========================
 
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
+if DATABASE_URL in {"''", '""', "None", "null", "NULL"}:
+    DATABASE_URL = ""
 ON_RENDER = (os.getenv("RENDER") or "").lower() == "true"
 IS_PRODUCTION = ON_RENDER
 
 if IS_PRODUCTION:
     if not DATABASE_URL:
         raise ImproperlyConfigured("DATABASE_URL is required in production/Render.")
-    parsed_database = dj_database_url.parse(
-        DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True,
-    )
+    try:
+        parsed_database = dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    except ValueError as exc:
+        raise ImproperlyConfigured("Invalid DATABASE_URL in Render environment.") from exc
     if parsed_database.get("ENGINE") != "django.db.backends.postgresql":
         raise ImproperlyConfigured("DATABASE_URL must point to a PostgreSQL database in production/Render.")
     DATABASES = {"default": parsed_database}
