@@ -56,6 +56,7 @@ MIDDLEWARE = [
 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "apps.core.middleware.RenderAutoMigrateMiddleware",
 
     # 🔥 IMPORTANT FIX FOR RENDER CSRF
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -139,6 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+os.makedirs(STATIC_ROOT, exist_ok=True)
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 31536000 if not DEBUG else 0
