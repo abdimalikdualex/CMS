@@ -1,42 +1,4 @@
-import os
-from threading import Lock
-
-from django.core.management import call_command
-from django.db import connections
-from django.db.utils import DatabaseError, OperationalError, ProgrammingError
-
 from apps.core.models import AuditLog
-
-
-class RenderAutoMigrateMiddleware:
-    """Run migrations once per worker on Render if DB isn't initialized."""
-
-    _checked = False
-    _lock = Lock()
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def _db_needs_migrate(self) -> bool:
-        try:
-            with connections["default"].cursor() as cursor:
-                cursor.execute("SELECT 1 FROM django_migrations LIMIT 1")
-            return False
-        except (DatabaseError, OperationalError, ProgrammingError):
-            return True
-
-    def __call__(self, request):
-        if (os.getenv("RENDER") or "").lower() == "true" and not self.__class__._checked:
-            with self.__class__._lock:
-                if not self.__class__._checked:
-                    if self._db_needs_migrate():
-                        try:
-                            call_command("migrate", interactive=False, run_syncdb=True, verbosity=0)
-                        except Exception:
-                            # Let request continue; downstream errors are safer than crash-loop at import.
-                            pass
-                    self.__class__._checked = True
-        return self.get_response(request)
 
 
 class AuditLogMiddleware:

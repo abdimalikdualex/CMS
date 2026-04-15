@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
@@ -56,7 +57,6 @@ MIDDLEWARE = [
 
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "apps.core.middleware.RenderAutoMigrateMiddleware",
 
     # 🔥 IMPORTANT FIX FOR RENDER CSRF
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -98,29 +98,27 @@ TEMPLATES = [
 
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
 ON_RENDER = (os.getenv("RENDER") or "").lower() == "true"
-parsed_database = None
-if DATABASE_URL:
-    try:
-        parsed_database = dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=not DEBUG,
-        )
-    except ValueError:
-        parsed_database = None
+IS_PRODUCTION = ON_RENDER
 
-if parsed_database:
+if IS_PRODUCTION:
+    if not DATABASE_URL:
+        raise ImproperlyConfigured("DATABASE_URL is required in production/Render.")
+    parsed_database = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )
+    if parsed_database.get("ENGINE") != "django.db.backends.postgresql":
+        raise ImproperlyConfigured("DATABASE_URL must point to a PostgreSQL database in production/Render.")
     DATABASES = {"default": parsed_database}
 else:
-    sqlite_name = Path("/tmp/db.sqlite3") if ON_RENDER else (BASE_DIR / "db.sqlite3")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": sqlite_name,
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
-print(f"[startup] DB engine: {DATABASES['default']['ENGINE']} | name: {DATABASES['default'].get('NAME', 'n/a')}")
+print(f"[startup] DB engine: {DATABASES['default']['ENGINE']}")
 
 # =========================
 # AUTH

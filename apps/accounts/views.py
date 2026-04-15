@@ -88,7 +88,10 @@ def login_view(request):
         user = _authenticate_flexible(request, username, password)
         if user is None:
             if not User.objects.filter(is_active=True).exists():
-                messages.error(request, "No active accounts found on this server yet. Contact admin to create users.")
+                messages.error(
+                    request,
+                    "No active accounts found on this server yet. Create one user (or set BOOTSTRAP_ADMIN_* env vars on Render).",
+                )
             else:
                 messages.error(request, "Invalid username/email/admission number or password.")
             return render(request, "auth/login.html")
