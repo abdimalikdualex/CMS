@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -9,7 +10,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
-from apps.accounts.models import UserType
+from apps.accounts.models import User, UserType
 from apps.core.models import AuditLog
 
 
@@ -28,6 +29,46 @@ def _redirect_url_for_user(user) -> str:
     return reverse(name)
 
 
+def _authenticate_flexible(request, identifier: str, password: str):
+    ident = (identifier or "").strip()
+    if not ident or password is None:
+        return None
+
+    username_candidates = [ident]
+    matched_usernames = (
+        User.objects.filter(
+            Q(username__iexact=ident)
+            | Q(email__iexact=ident)
+            | Q(student_record__admission_number__iexact=ident)
+        )
+        .values_list("username", flat=True)
+        .distinct()[:10]
+    )
+    username_candidates.extend(list(matched_usernames))
+
+    tried = set()
+    for uname in username_candidates:
+        key = (uname or "").lower()
+        if not key or key in tried:
+            continue
+        tried.add(key)
+        user = authenticate(request, username=uname, password=password)
+        if user:
+            return user
+
+    trimmed_password = password.strip()
+    if trimmed_password != password:
+        for uname in username_candidates:
+            key = ((uname or "") + "|trimmed").lower()
+            if not uname or key in tried:
+                continue
+            tried.add(key)
+            user = authenticate(request, username=uname, password=trimmed_password)
+            if user:
+                return user
+    return None
+
+
 @require_http_methods(["GET", "POST"])
 @never_cache
 @ensure_csrf_cookie
@@ -44,9 +85,12 @@ def login_view(request):
             messages.error(request, "Username and password are required.")
             return render(request, "auth/login.html")
 
-        user = authenticate(request, username=username, password=password)
+        user = _authenticate_flexible(request, username, password)
         if user is None:
-            messages.error(request, "Invalid username or password.")
+            if not User.objects.filter(is_active=True).exists():
+                messages.error(request, "No active accounts found on this server yet. Contact admin to create users.")
+            else:
+                messages.error(request, "Invalid username/email/admission number or password.")
             return render(request, "auth/login.html")
 
         if not user.is_active:
